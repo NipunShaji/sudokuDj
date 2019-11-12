@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <title>SudokuSolver</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+    <style media="screen">
+        .loader {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            position: relative;
+            border: 4px solid black;
+            animation: loader 2s infinite ease;
+        }
+
+        .loader-inner {
+            vertical-align: top;
+            display: inline-block;
+            width: 100%;
+            background-color: black;
+            animation: loader-inner 2s infinite ease-in;
+        }
+
+        @keyframes loader {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            25% {
+                transform: rotate(180deg);
+            }
+
+            50% {
+                transform: rotate(180deg);
+            }
+
+            75% {
+                transform: rotate(360deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes loader-inner {
+            0% {
+                height: 0%;
+            }
+
+            25% {
+                height: 0%;
+            }
+
+            50% {
+                height: 100%;
+            }
+
+            75% {
+                height: 100%;
+            }
+
+            100% {
+                height: 0%;
+            }
+        }
+
+        .loader-main {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            height: 100%;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+            z-index: 30;
+        }
+
+        .nav {
+            width: 100%;
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+            background-color: white;
+            box-shadow: 0 0 5px 3px #aaa;
+        }
+
+        .nav>.header {
+            padding: 4vh;
+            flex-basis: 90%;
+            flex-shrink: 1;
+        }
+
+        .nav>.help {
+            padding: 4vh;
+            flex-basis: 10%;
+            flex-shrink: 1;
+        }
+
+        .nav>.header>a {
+            font-size: 1.5em;
+            font-weight: 550;
+        }
+
+        .nav>.help>a {
+            font-size: 1.5em;
+        }
+
+        .col {
+            border-right: 1px solid black;
+        }
+
+        table {
+            border-collapse: collapse;
+            font-family: Calibri, sans-serif;
+        }
+
+        colgroup,
+        tbody {
+            border: solid medium;
+        }
+
+        td {
+            border: solid thin;
+            height: 3vw;
+            width: 3vw;
+            text-align: center;
+            padding: 0;
+        }
+
+        .result {
+            height: 10vh;
+        }
+        .btns{
+            padding: 6px 20px;
+            border: 2px solid #555;
+            color: #555;
+            background-color: white;
+            border-radius: 6px;
+            font-weight: 501;
+        }
+        .btns:hover{
+            color: white;
+            background-color: #333;
+            border-color: #333;
+        }
+        .error{
+            color:red;
+        }
+        input{
+            margin:0;
+            border:none;
+            padding:0;
+            width:20px;
+            text-align: center;
+        }
+    </style>
+
+    <script type="text/javascript">
+        $(window).on('load', function() {
+            hideLoader();
+        });
+
+        var error;
+        var data = [];
+        var request;
+        var response;
+        var url;
+
+        function showLoader(){
+            $('.loader-main').fadeIn();
+        }
+
+        function hideLoader(){
+            $('.loader-main').fadeOut();
+        }
+
+        function getdata(){
+            data = [];
+            for(var i=1; i<82; i++){
+                item = document.getElementById(i).value;
+                if(item == ''){
+                    item = 0;
+                }
+                data.push(item);
+            }
+            console.log(data);
+        }
+
+        function senddata(){
+            request = new XMLHttpRequest();
+            console.log(data);
+            url = '{% url 'solver:solve' %}?data='+data;
+            request.open('GET',url,true);
+            request.onload = function(){
+                response = JSON.parse(request.response);
+                document.getElementById('resultText').innerText = response['status'];
+                console.log(response['data'])
+                for(var k=1; k<82; k++){
+                    document.getElementById(k).value = response['data'][k-1];
+                }
+                hideLoader();
+            }
+            request.send();
+        }
+
+        function startsolving(){
+            showLoader();
+            $('.error').removeClass('error');
+            error = 0;
+            // for(var i=1; i<82; i++){
+            //     let id = document.getElementById(i).innerText;
+            //     if(id != ''){
+            //         if(id<1 || id>9){
+            //             error = 1;
+            //             $(document.getElementById(i)).addClass('error');
+            //         }
+            //     }
+            // }
+            if(error){
+                document.getElementById('resultText').innerText = 'Invalid Numbers. Click help for details';
+                $('#resultText').addClass('error');
+                hideLoader()
+            }
+            else {
+                getdata()
+                senddata()
+            }
+        }
+    </script>
+
+</head>
+
+<body>
+    <div class="loader-main">
+        <!-- loader -->
+        <span class="loader"><span class="loader-inner"></span></span>
+    </div> <!-- loader end-->
+    <div class="nav">
+        <div class="header">
+            <a>Sudoku Solver</a>
+        </div>
+        <div class="help text-right">
+            <a>?</a>
+        </div>
+    </div>
+    <div class="result text-center  py-4">
+        <p id="resultText"></p>
+    </div>
+    <div style="display:flex;justify-content:center;align-items:center;">
+        <table>
+            <colgroup>
+                <col>
+                <col>
+                <col>
+            </colgroup>
+            <colgroup>
+                <col>
+                <col>
+                <col>
+            </colgroup>
+            <colgroup>
+                <col>
+                <col>
+                <col>
+            </colgroup>
+            <tbody>
+                <tr>
+                    <td><input id="1" type="text" name="" value="1">
+                    <td><input id="2" type="text" name="" value="2">
+                    <td><input id="3" type="text" name="" value="3">
+                    <td><input id="4" type="text" name="" value="4">
+                    <td><input id="5" type="text" name="" value="5">
+                    <td><input id="6" type="text" name="" value="6">
+                    <td><input id="7" type="text" name="" value="7">
+                    <td><input id="8" type="text" name="" value="8">
+                    <td><input id="9" type="text" name="" value="9">
+                <tr>
+                    <td><input id="10" type="text" name="" value="1">
+                    <td><input id="11" type="text" name="" value="2">
+                    <td><input id="12" type="text" name="" value="3">
+                    <td><input id="13" type="text" name="" value="4">
+                    <td><input id="14" type="text" name="" value="5">
+                    <td><input id="15" type="text" name="" value="6">
+                    <td><input id="16" type="text" name="" value="7">
+                    <td><input id="17" type="text" name="" value="8">
+                    <td><input id="18" type="text" name="" value="9">
+                <tr>
+                    <td><input id="19" type="text" name="" value="1">
+                    <td><input id="20" type="text" name="" value="2">
+                    <td><input id="21" type="text" name="" value="3">
+                    <td><input id="22" type="text" name="" value="4">
+                    <td><input id="23" type="text" name="" value="5">
+                    <td><input id="24" type="text" name="" value="6">
+                    <td><input id="25" type="text" name="" value="7">
+                    <td><input id="26" type="text" name="" value="8">
+                    <td><input id="27" type="text" name="" value="9">
+            <tbody>
+                <tr>
+                    <td><input id="28" type="text" name="" value="1">
+                    <td><input id="29" type="text" name="" value="2">
+                    <td><input id="30" type="text" name="" value="3">
+                    <td><input id="31" type="text" name="" value="4">
+                    <td><input id="32" type="text" name="" value="5">
+                    <td><input id="33" type="text" name="" value="6">
+                    <td><input id="34" type="text" name="" value="7">
+                    <td><input id="35" type="text" name="" value="8">
+                    <td><input id="36" type="text" name="" value="9">
+                <tr>
+                    <td><input id="37" type="text" name="" value="1">
+                    <td><input id="38" type="text" name="" value="2">
+                    <td><input id="39" type="text" name="" value="3">
+                    <td><input id="40" type="text" name="" value="4">
+                    <td><input id="41" type="text" name="" value="5">
+                    <td><input id="42" type="text" name="" value="6">
+                    <td><input id="43" type="text" name="" value="7">
+                    <td><input id="44" type="text" name="" value="8">
+                    <td><input id="45" type="text" name="" value="9">
+                <tr>
+                    <td><input id="46" type="text" name="" value="1">
+                    <td><input id="47" type="text" name="" value="2">
+                    <td><input id="48" type="text" name="" value="3">
+                    <td><input id="49" type="text" name="" value="4">
+                    <td><input id="50" type="text" name="" value="5">
+                    <td><input id="51" type="text" name="" value="6">
+                    <td><input id="52" type="text" name="" value="7">
+                    <td><input id="53" type="text" name="" value="8">
+                    <td><input id="54" type="text" name="" value="9">
+            <tbody>
+                <tr>
+                    <td><input id="55" type="text" name="" value="1">
+                    <td><input id="56" type="text" name="" value="2">
+                    <td><input id="57" type="text" name="" value="3">
+                    <td><input id="58" type="text" name="" value="4">
+                    <td><input id="59" type="text" name="" value="5">
+                    <td><input id="60" type="text" name="" value="6">
+                    <td><input id="61" type="text" name="" value="7">
+                    <td><input id="62" type="text" name="" value="8">
+                    <td><input id="63" type="text" name="" value="9">
+                <tr>
+                    <td><input id="64" type="text" name="" value="1">
+                    <td><input id="65" type="text" name="" value="2">
+                    <td><input id="66" type="text" name="" value="3">
+                    <td><input id="67" type="text" name="" value="4">
+                    <td><input id="68" type="text" name="" value="5">
+                    <td><input id="69" type="text" name="" value="6">
+                    <td><input id="70" type="text" name="" value="7">
+                    <td><input id="71" type="text" name="" value="8">
+                    <td><input id="72" type="text" name="" value="9">
+                <tr>
+                    <td><input id="73" type="text" name="" value="1">
+                    <td><input id="74" type="text" name="" value="2">
+                    <td><input id="75" type="text" name="" value="3">
+                    <td><input id="76" type="text" name="" value="4">
+                    <td><input id="77" type="text" name="" value="5">
+                    <td><input id="78" type="text" name="" value="6">
+                    <td><input id="79" type="text" name="" value="7">
+                    <td><input id="80" type="text" name="" value="8">
+                    <td><input id="81" type="text" name="" value="9">
+        </table>
+    </div>
+    <div style="display:flex;justify-content:center;align-items:center;" class="mt-4">
+        <button type="button" class="btns" name="button" onclick="startsolving();">Solve</button>
+    </div>
+
+
+</body>
+
+</html>
